@@ -24,7 +24,11 @@ jobs:
             echo "PROJECT_DIR=." >> "$GITHUB_ENV"
           else
             mkdir -p project
-            unzip -q -o ChordFinderIsland.zip -d project
+            # -DD = jangan pakai timestamp dari zip. Zip dibuat di WITA (UTC+8) tanpa info zona waktu,
+            # jadi di runner (UTC) file tampak ~8 jam "dari masa depan" dan ninja menganggap
+            # build.ninja selalu dirty ("still dirty after 100 tries").
+            unzip -q -o -DD ChordFinderIsland.zip -d project
+            find project -exec touch {} +
             SETTINGS=$(find project -maxdepth 3 -name settings.gradle.kts | head -n 1)
             if [ -z "$SETTINGS" ]; then echo "settings.gradle.kts tidak ketemu"; exit 1; fi
             echo "PROJECT_DIR=$(dirname "$SETTINGS")" >> "$GITHUB_ENV"
