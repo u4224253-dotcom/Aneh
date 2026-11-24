@@ -34,6 +34,20 @@ jobs:
             echo "PROJECT_DIR=$(dirname "$SETTINGS")" >> "$GITHUB_ENV"
           fi
 
+      - name: Unduh model Beat This! (small, ONNX) untuk deteksi BPM
+        run: |
+          DEST="$PROJECT_DIR/app/src/main/assets/beat_this.onnx"
+          if [ -f "$DEST" ]; then echo "Model sudah ada di repo, tidak diunduh."; exit 0; fi
+          mkdir -p "$(dirname "$DEST")"
+          URL="https://huggingface.co/nilsbc/beat-this-onnx/resolve/main/beat_this_small0.onnx"
+          SHA="53fda6e96afae7f44d898fa5f020272eda967a92839306bf7a3d0898fb8a0d9a"
+          if curl -fL --retry 3 -o "$DEST.tmp" "$URL" && echo "$SHA  $DEST.tmp" | sha256sum -c -; then
+            mv "$DEST.tmp" "$DEST"; ls -l "$DEST"
+          else
+            rm -f "$DEST.tmp"
+            echo "::warning::Model Beat This! gagal diunduh atau checksum tidak cocok. APK tetap dibuat, tanpa fitur BPM."
+          fi
+
       - name: Setup JDK 17
         uses: actions/setup-java@v4
         with:
